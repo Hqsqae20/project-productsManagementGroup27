@@ -54,86 +54,70 @@ const isValidSize = function (input) {
     return ["S", "XS","M","X", "L","XXL", "XL"].indexOf(input) !== -1; //enum validation
 };
 
-const validInstallment = function isInteger(value) {
-    if (value < 0) return false
-    if (value % 1 == 0) return true;
-
-}
-
 const isValidDetails = function (requestBody) {
     return Object.keys(requestBody).length > 0;
 };
 // create review.....................................................................
 const createProduct = async function (req, res) { 
-    try {
-        let data = req.body;
-        if (!(Object.keys(data).length > 0)) {
-            return res.status(400).send({ status: false, message: "Invalid request Please provide details of an user" });
-        }
 
-        const { title, description, price, currencyId, currencyFormat, productImage, style, availableSizes,installments} = data;
-        
-        
-        
-        if (!isValid(title)) {
-            return res.status(400).send({ status: false, message: "please provide title" });
-        }
+    try{
+        let { title,description,price,currencyId,currencyFormat,
+            availableSizes,isFreeShipping,installments,style } = req.body
 
-        let duplicateTitle = await productModel.findOne({ title: title })
-          if (duplicateTitle) {
-              return res.status(400).send({ status: false, message: `Title Already Exist` });
-          }
-
-
-        if (!isValid(description)) {
-            return res.status(400).send({ status: false, message: "please provide description" });
-        }
-
-        if (!isValid(price)) {
-            return res.status(400).send({ status: false, message: "price is required" });
-        }
-
-        // if (!productImage) {
-        //     return res.status(400).send({ status: false, message: "ProductImage is required" });
-        // }
-
-
-        // if(!currencyId)
-        //  return res.status(400).send({status:false,msg:'enter the currecy Id'})
-
-        if(!isValid(currencyId)) 
-        return res.status(400).send({Status:false,msg:"currency Id is not valid"})
-
-        if (currencyId != "INR") {
-            return res.status(400).send({ status: false, message: "currencyId should be INR" })
-        }
-
-        // if (!isValid(currencyFormat)) {
-        //     return res.status(400).send({ status: false, message: "please provide currencyFormat" });
-        // }
-
-        if(installments){
-            if (!validInstallment(installments)) {
-                return res.status(400).send({ status: false, message: "installments can not be a decimal number " })
+            if (!isValidDetails(req.body)) {
+                return res.status(400).send({ status: false, message: "please provide product details" })
             }
-        }
-        if (!isValidSize(availableSizes)) {
-                 return res.status(400).send({ status: false, message: "Please provide valid size." }); //Enum is mandory
-               }
+        
+            if (!isValid(title)) {
+                return res.status(400).send({ status: false, messege: "please provide title" })
+            }
+            let isDuplicateTitle = await productModel.findOne({ title })
+            if (isDuplicateTitle) {
+                return res.status(400).send({ status: false, message: "title already exists" })
+            }
+    
+            if (!isValid(description)) {
+                return res.status(400).send({ status: false, messege: "please provide description" })
+            }
+    
+            if (!isValid(price)) {
+                return res.status(400).send({ status: false, messege: "please provide price" })
+            }
+    
+            if (!isValid(currencyId)) {
+                return res.status(400).send({ status: false, messege: "please provide currencyId" })
+            }
+    
+            if (currencyId != "INR") {
+                return res.status(400).send({ status: false, message: "currencyId should be INR" })
+            }
+    
+            if(installments){
+                if (installments <= 0 || installments % 1 != 0) {
+                    return res.status(400).send({ status: false, message: "installments can not be a decimal number " })
+                }
+            }
+    
+            if (!isValidSize(availableSizes)) {
+                return res.status(400).send({ status: false, message: "Please provide valid size." }); //Enum is mandory
+              }
 
         currencyFormat = currencySymbol('INR')
         
-                let files = req.files 
-   
-    if (files && files.length > 0) {
-        let productImage = await uploadFile(files[0])    
+        let files = req.files
+        if (!(files && files.length > 0)) {
+            return res.status(400).send({ status: false, message: "Please provide product image" })
+        }
+        let productImage = await uploadFile(files[0])
 
-        let savedData = await productModel.create({ title, description, price, currencyId, currencyFormat, productImage, style, availableSizes});
+        let productData = { title,description,price,currencyId,currencyFormat,
+            availableSizes,isFreeShipping,productImage,installments,style }
 
-        return res.status(201).send({ status: true, data: savedData });
+        let savedData = await productModel.create(productData)
+        return res.status(201).send({ status: true, message: "new product created successfully", data: savedData });
     }
-    } catch (error) {
-        return res.status(500).send({ status: false, message: error.message });
+    catch(error){
+        return res.status(500).json({ status: false, message: error.message });
     }
 };
 
