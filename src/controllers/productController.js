@@ -104,13 +104,13 @@ const createProduct = async function (req, res) {
         if(!isValid(currencyId)) 
         return res.status(400).send({Status:false,msg:"currency Id is not valid"})
 
-        // if (currencyId != "INR") {
-        //     return res.status(400).send({ status: false, message: "currencyId should be INR" })
-        // }
-
-        if (!isValid(currencyFormat)) {
-            return res.status(400).send({ status: false, message: "please provide currencyFormat" });
+        if (currencyId != "INR") {
+            return res.status(400).send({ status: false, message: "currencyId should be INR" })
         }
+
+        // if (!isValid(currencyFormat)) {
+        //     return res.status(400).send({ status: false, message: "please provide currencyFormat" });
+        // }
 
         if(installments){
             if (!validInstallment(installments)) {
@@ -121,7 +121,7 @@ const createProduct = async function (req, res) {
                  return res.status(400).send({ status: false, message: "Please provide valid size." }); //Enum is mandory
                }
 
-        //currencyFormat = currencySymbol('INR')
+        currencyFormat = currencySymbol('INR')
         
                 let files = req.files 
    
