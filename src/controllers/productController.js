@@ -102,6 +102,7 @@ const createProduct = async function (req, res) {
                 return res.status(400).send({ status: false, message: "Please provide valid size." }); //Enum is mandory
               }
 
+            
         currencyFormat = currencySymbol('INR')
         
         let files = req.files
@@ -138,7 +139,7 @@ const getProduct = async function (req, res) {
             if(isValid(name)){
               
             const findName=await productModel.find({isDeleted:false}).select({title:1,_id:0})
-            for(let i=0;i<findName.length;i++)
+            for(let i=0;i<findName.length;i++) 
             {
                 let findingName=findName[i].title
                 let newSize=findingName.includes(name)
@@ -174,7 +175,7 @@ const getProduct = async function (req, res) {
            }
            return res.status(200).send({status:true,data:findPrice})
         }
-        if(sortPrice==-1){
+        if(sortPrice==-1){``
             let findPrice=await productModel.find(filter).sort({price:-1})
             if(findPrice.length==0)
             {
@@ -267,6 +268,10 @@ const updateProduct = async function (req, res) {
 
         if (isValid(currencyFormat))  {
             dataObject['currencyFormat'] = currencyFormat.trim()
+        }
+
+        if (isValid(availableSizes))  {
+            dataObject['availableSizes'] = availableSizes.trim()
         }
         let file = req.files
         if (file.length > 0) {
