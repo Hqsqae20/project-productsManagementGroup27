@@ -79,6 +79,12 @@ const createProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: "please provide title" });
         }
 
+        let duplicateTitle = await productModel.findOne({ title: title })
+          if (duplicateTitle) {
+              return res.status(400).send({ status: false, message: `Title Already Exist` });
+          }
+
+
         if (!isValid(description)) {
             return res.status(400).send({ status: false, message: "please provide description" });
         }
@@ -87,11 +93,18 @@ const createProduct = async function (req, res) {
             return res.status(400).send({ status: false, message: "price is required" });
         }
 
-        if (!isValid(currencyId)) {
-            return res.status(400).send({ status: false, message: "currencyId is required" });
-        }
+        // if (!productImage) {
+        //     return res.status(400).send({ status: false, message: "ProductImage is required" });
+        // }
 
-        // if (!isValid(currencyId !== "INR")) {
+
+        // if(!currencyId)
+        //  return res.status(400).send({status:false,msg:'enter the currecy Id'})
+
+        if(!isValid(currencyId)) 
+        return res.status(400).send({Status:false,msg:"currency Id is not valid"})
+
+        // if (currencyId != "INR") {
         //     return res.status(400).send({ status: false, message: "currencyId should be INR" })
         // }
 
@@ -108,7 +121,8 @@ const createProduct = async function (req, res) {
                  return res.status(400).send({ status: false, message: "Please provide valid size." }); //Enum is mandory
                }
 
-               //currencyFormat = currencySymbol('INR')
+        //currencyFormat = currencySymbol('INR')
+        
                 let files = req.files 
    
     if (files && files.length > 0) {
@@ -174,7 +188,7 @@ const getProduct = async function (req, res) {
            {
                return res.status(404).send({status:false,message:"data not found"})
            }
-           return res.status(200).send({status:false,data:findPrice})
+           return res.status(200).send({status:true,data:findPrice})
         }
         if(sortPrice==-1){
             let findPrice=await productModel.find(filter).sort({price:-1})
@@ -182,7 +196,7 @@ const getProduct = async function (req, res) {
             {
                 return res.status(404).send({status:false,message:"data not found"})
             }
-            return res.status(200).send({status:false,data:findPrice})
+            return res.status(200).send({status:true,data:findPrice})
          }
      
          let findPrice=await productModel.find(filter)
@@ -190,7 +204,7 @@ const getProduct = async function (req, res) {
             {
                 return res.status(404).send({status:false,message:"data not found"})
             }
-            return res.status(200).send({status:false,data:findPrice})
+            return res.status(200).send({status:true,data:findPrice})
         
         }
         catch(error){
