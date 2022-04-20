@@ -39,90 +39,94 @@ let uploadFile = async (file) => {
   )
 }
 
-const isValid = function (value) {
-    if (typeof value == undefined || value == null) return false
-    if (typeof value === 'string' && value.trim().length === 0) return false
-    if (typeof value === 'Number' && value.toString().trim().length === 0) return false
+const isValid = function(value){
+    if(typeof value ==undefined ||  value ==null)return false
+    if(typeof value==='string'&&value.trim().length===0) return false
+    if(typeof value===Number &&value.trim().length===0) return false
     return true
-}
+  }
 
-const isValidObjectId = function (objectId) {
-    return mongoose.Types.ObjectId.isValid(objectId)
+const validForEnum = function (value) {
+    let enumValue = ["S", "XS", "M", "X", "L", "XXL", "XL"]
+    value = JSON.parse(value)
+    for (let x of value) {
+        if (enumValue.includes(x) == false) {
+            return false
+        }
+    }
+    return true;
 }
+const validInstallment = function isInteger(value) {
+    if (value < 0) return false
+    if (value % 1 == 0) return true;
 
-const isValidSize = function (input) {
-    return ["S", "XS","M","X", "L","XXL", "XL"].indexOf(input) !== -1; //enum validation
-};
+}
 
 const isValidDetails = function (requestBody) {
     return Object.keys(requestBody).length > 0;
 };
-// create review.....................................................................
-const createProduct = async function (req, res) { 
 
-    try{
-        let { title,description,price,currencyId,currencyFormat,
-            availableSizes,isFreeShipping,installments,style } = req.body
-
-            if (!isValidDetails(req.body)) {
-                return res.status(400).send({ status: false, message: "please provide product details" })
-            }
-        
-            if (!isValid(title)) {
-                return res.status(400).send({ status: false, messege: "please provide title" })
-            }
-            let isDuplicateTitle = await productModel.findOne({ title })
-            if (isDuplicateTitle) {
-                return res.status(400).send({ status: false, message: "title already exists" })
-            }
-    
-            if (!isValid(description)) {
-                return res.status(400).send({ status: false, messege: "please provide description" })
-            }
-    
-            if (!isValid(price)) {
-                return res.status(400).send({ status: false, messege: "please provide price" })
-            }
-    
-            if (!isValid(currencyId)) {
-                return res.status(400).send({ status: false, messege: "please provide currencyId" })
-            }
-    
-            if (currencyId != "INR") {
-                return res.status(400).send({ status: false, message: "currencyId should be INR" })
-            }
-    
-            if(installments){
-                if (installments <= 0 || installments % 1 != 0) {
-                    return res.status(400).send({ status: false, message: "installments can not be a decimal number " })
-                }
-            }
-    
-            if (!isValidSize(availableSizes)) {
-                return res.status(400).send({ status: false, message: "Please provide valid size." }); //Enum is mandory
-              }
-
-            
-        currencyFormat = currencySymbol('INR')
-        
+const createProduct = async function (req, res) {
+    try {
+        let data = req.body
         let files = req.files
-        if (!(files && files.length > 0)) {
-            return res.status(400).send({ status: false, message: "Please provide product image" })
-        }
-        let productImage = await uploadFile(files[0])
+      
+if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg: "please input some data"})}
 
-        let productData = { title,description,price,currencyId,currencyFormat,
-            availableSizes,isFreeShipping,productImage,installments,style }
+       
+        const { title, description, price, currencyId, currencyFormat, isFreeShipping, style, availableSizes, installments } = data
 
-        let savedData = await productModel.create(productData)
-        return res.status(201).send({ status: true, message: "new product created successfully", data: savedData });
+
+
+//     title validation
+
+       if(!title){return res.status(400).send({status:false, msg:"title required"})}
+
+        if(!isValid(title)){return res.status(400).send({status:false, msg:"title required"})}
+
+       let duplicateTitle = await productModel.findOne({title:title})
+
+       if(duplicateTitle){
+           return res.status(400).send({status:false, msg: "title already exist in use"})}
+
+// description validation
+       
+    if(!description){return res.status(400).send({status:false, msg:"description required"})}
+
+    if(!isValid(description)){return res.status(400).send({status:false, msg:"description required"})}
+
+    if(!price){return res.status(400).send({status:false, msg: "price required"})}
+
+    if(!currencyId){return res.status(400).send({status:false, msg: "currencyId required"})}
+
+    if(!currencyFormat){return res.status(400).send({status:false, msg: "currency format required"})}
+
+    if(!validForEnum(availableSizes)){return res.status(400).send({status:false, msg: "please choose the size from the available sizes"})}
+
+    if(currencyId != "INR"){return res.status(400).send({status:false, msg: "only indian currencyId INR accepted"})}
+
+    if(currencyFormat != "₹"){return res.status(400).send({status:false, msg: "only indian currency ₹ accepted "})}
+
+
+    if (files.length > 0) {
+      var  profileImagessweetselfie = await uploadFile(files[0])
     }
-    catch(error){
-        return res.status(500).json({ status: false, message: error.message });
+
+        data.productImage = profileImagessweetselfie
+
+       data.availableSizes = JSON.parse(availableSizes)
+
+        if(!data.productImage){return res.status(400).send({status:false, msg: "productImage required"})}
+
+        const created = await productModel.create(data)
+
+        return res.status(201).send({ status: true, data: created })
     }
-};
-
-
+    catch (err) {
+        console.log(err)
+        return res.status(500).send({ status: false, msg: err.message })
+    }
+}
 //get Product................................................
 const getProduct = async function (req, res) {
     
