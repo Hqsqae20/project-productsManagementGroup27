@@ -249,21 +249,11 @@ const updateOrder = async(req, res) => {
         }
 
         if (isOrderBelongsToUser['status'] == "pending") {
-            // if (status) {
-            //     if (["completed", "cancelled"].indexOf(status) === -1) {
-            //         return res.status(400).send({
-            //             status: false,
-            //             message: `Unable to update status due to Non-cancellation policy.`
-            //         })
-            //     }
-
-                // if ((status === 'pending' || status === 'completed' || status === 'cancelled')) {
+            
                 const updatedOrderDetails = await OrderModel.findOneAndUpdate({ _id: orderId }, { $set: { status: status } }, { new: true })
 
                 return res.status(200).send({ status: true, message: `Successfully updated the order details.`, data: updatedOrderDetails })
-                    // }
-                    // return res.status(400).send({ status: true, message: `Status must be either- 'pending','completed' & 'cancelled'.` })
-            // }
+                    
         }
 
     } catch (err) {

@@ -23,11 +23,7 @@ const createCart = async(req, res)=>{
       const userIdbyParams=req.params.userId
       let {userId, productId, cartId} = data
 
-      // if (!isValidObjId.test(userId)) {
-      //     return res
-      //       .status(400)
-      //       .send({ status: false, message: "please provide valid UserId" });
-      //   }
+      
       if (!isValid(userId)) {
           res.status(400).send({ status: false, message: 'please provide userId' })
           return
@@ -204,10 +200,7 @@ const updateCart = async function (req, res) {
 
     //Extract body
     const { cartId, productId, removeProduct } = requestBody
-    // if (!validator.isValidRequestBody(requestBody)) {
-    //     return res.status(400).send({ status: false, message: 'Invalid request parameters. Please provide cart details.' })
-    // }
-
+    
     //cart validation
     if (!isValidObjId.test(cartId)) {
         return res.status(400).send({ status: false, message: "Invalid cartId in body" })
@@ -263,7 +256,7 @@ const updateCart = async function (req, res) {
     for (i in itemsArr) {
         if (itemsArr[i].productId.toString() == productId) {
             itemsArr[i].quantity = itemsArr[i].quantity - 1
-
+s
             if (itemsArr[i].quantity < 1) {
                 await cartModel.findOneAndUpdate({ _id: cartId }, { $pull: { items: { productId: productId } } }, { new: true })
                 let quantity = findCart.totalItems - 1

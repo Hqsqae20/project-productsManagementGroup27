@@ -16,6 +16,7 @@ const isValid = function(value){
 }
 
 
+
 const isValidObjectId = function (ObjectId) {
   return mongoose.Types.ObjectId.isValid(ObjectId)
 }
@@ -71,7 +72,8 @@ const createUser = async function(req, res) {
       if (!/^(\+91[\-\s]?)?[0]?(91)?[789]\d{9}$/.test(data.phone)) {
           return res.status(400).send({status: false,msg: "valid phone number is required"})
       }
-
+        
+       
       let dupliPhone = await userModel.find({ phone: data.phone })
       if (dupliPhone.length > 0) {
           return res.status(400).send({status: false,msg: "phone number already exits" })

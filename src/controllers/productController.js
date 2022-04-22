@@ -80,34 +80,68 @@ if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg:
 
 //     title validation
 
-       if(!title){return res.status(400).send({status:false, msg:"title required"})}
+       if(!title){
+           return res.status(400).send({status:false, msg:"title required"})
+        }
 
-        if(!isValid(title)){return res.status(400).send({status:false, msg:"title required"})}
+        if(!isValid(title)){
+            return res.status(400).send({status:false, msg:"title required"})
+        }
 
        let duplicateTitle = await productModel.findOne({title:title})
 
        if(duplicateTitle){
-           return res.status(400).send({status:false, msg: "title already exist in use"})}
+           return res.status(400).send({status:false, msg: "title already exist in use"})
+        }
 
 // description validation
        
-    if(!description){return res.status(400).send({status:false, msg:"description required"})}
+    if(!description){
+        return res.status(400).send({status:false, msg:"description required"})
+    }
 
-    if(!isValid(description)){return res.status(400).send({status:false, msg:"description required"})}
+    if(!isValid(description)){
+        return res.status(400).send({status:false, msg:"description required"})
+    }
 
-    if(!price){return res.status(400).send({status:false, msg: "price required"})}
+    if(!price){
+        return res.status(400).send({status:false, msg: "price required"})
+    }
 
-    if(!currencyId){return res.status(400).send({status:false, msg: "currencyId required"})}
+    if(!(!isNaN(Number(price)))){
+        return res.status(400).send({status:false, msg: "price should be a valid number"})
+    }
 
-    if(!currencyFormat){return res.status(400).send({status:false, msg: "currency format required"})}
+    if(price<=0){
+        return res.status(400).send({status:false, msg: "price should be a valid number"})
 
-    if(!validForEnum(availableSizes)){return res.status(400).send({status:false, msg: "please choose the size from the available sizes"})}
+    }
 
-    if(currencyId != "INR"){return res.status(400).send({status:false, msg: "only indian currencyId INR accepted"})}
+    if(!currencyId){
+        return res.status(400).send({status:false, msg: "currencyId required"})
+    }
 
-    if(currencyFormat != "₹"){return res.status(400).send({status:false, msg: "only indian currency ₹ accepted "})}
+    if(!currencyFormat){
+        return res.status(400).send({status:false, msg: "currency format required"})
+    }
 
+    if(!validForEnum(availableSizes)){
+        return res.status(400).send({status:false, msg: "please choose the size from the available sizes"})
+    }
 
+    if(currencyId != "INR"){
+        return res.status(400).send({status:false, msg: "only indian currencyId INR accepted"})
+    }
+
+    if(currencyFormat != "₹"){
+        return res.status(400).send({status:false, msg: "only indian currency ₹ accepted "})
+    }
+
+    if(isValid(isFreeShipping)){
+        if(!((isFreeShipping==="true") || (isFreeShipping === "false"))){
+            return res.status(400).send({status:false, msg: "isfreeshipping should be a boolean valus"})
+        }
+    }
     if (files.length > 0) {
       var  profileImagessweetselfie = await uploadFile(files[0])
     }
@@ -131,75 +165,100 @@ if(Object.keys(data).length ==0){return res.status(400).send({status:false, msg:
 const getProduct = async function (req, res) {
     
     
-        try{
-            const queryData = req.query
-            let filter = { isDeleted:false }
-           
-            const { size, name, priceGreaterThan, priceLessThan, sortPrice } = queryData;
-            if(isValid(size)){
-                filter["availableSizes"]=size
-            }
-            let arr=[]
-            if(isValid(name)){
-              
-            const findName=await productModel.find({isDeleted:false}).select({title:1,_id:0})
-            for(let i=0;i<findName.length;i++) 
-            {
-                let findingName=findName[i].title
-                let newSize=findingName.includes(name)
-    
-                if(newSize)
-                {
-                   arr.push(findName[i].title)
-                }
-            }
-          filter["title"]=name
+    try{
+        const queryData = req.query
+        let filter = { isDeleted:false }
+       
+        const { size, name, priceGreaterThan, priceLessThan, sortPrice } = queryData;
+        if(isValid(size)){
+            filter["availableSizes"]=size
         }
-    
-        if(priceGreaterThan!=null && priceLessThan==null )
+        let arr=[]
+        if(isValid(name)){
+          
+        const findName=await productModel.find({isDeleted:false}).select({title:1,_id:0})
+        for(let i=0;i<findName.length;i++)
         {
-          filter["price"]={$gt:priceGreaterThan}
-        }
-    
-        if(priceGreaterThan==null && priceLessThan!=null )
-        {
-          filter["price"]={$lt:priceLessThan}
-        }
-    
-        if(priceGreaterThan!=null && priceLessThan!=null )
-        {
-          filter["price"]={$gt:priceGreaterThan,$lt:priceLessThan}
-        }
-        
-        if(sortPrice==1){
-           let findPrice=await productModel.find(filter).sort({price:1})
-           if(findPrice.length==0)
-           {
-               return res.status(404).send({status:false,message:"data not found"})
-           }
-           return res.status(200).send({status:true,data:findPrice})
-        }
-        if(sortPrice==-1){``
-            let findPrice=await productModel.find(filter).sort({price:-1})
-            if(findPrice.length==0)
+            let findingName=findName[i].title
+            let newSize=findingName.includes(name)
+
+            if(newSize)
             {
-                return res.status(404).send({status:false,message:"data not found"})
+               arr.push(findName[i].title)
             }
-            return res.status(200).send({status:true,data:findPrice})
-         }
-     
-         let findPrice=await productModel.find(filter)
-            if(findPrice.length==0)
-            {
-                return res.status(404).send({status:false,message:"data not found"})
-            }
-            return res.status(200).send({status:true,data:findPrice})
-        
         }
-        catch(error){
-            return res.status(500).json({ status: false, message: error.message });
+      filter["title"]=name
+    }
+
+    if(priceGreaterThan!=null && priceLessThan==null )
+    {
+      filter["price"]={$gt:priceGreaterThan}
+    }
+
+    if(priceGreaterThan==null && priceLessThan!=null )
+    {
+      filter["price"]={$lt:priceLessThan}
+    }
+
+    if(priceGreaterThan!=null && priceLessThan!=null )
+    {
+      filter["price"]={$gt:priceGreaterThan,$lt:priceLessThan}
+    }
+    if(size) {
+
+        const searchSize = await productModel.find({availableSizes: size, isDeleted: false}).sort({price: sortPrice})
+
+        if(searchSize.length !== 0) {
+            return res.status(200).send({ status: true, message: 'Success', data: searchSize})
+        }
+        else {
+            return res.status(404).send({status: false, message: `product not found with this ${size}`})
         }
     }
+
+    if(name) {
+        const searchName = await productModel.find({title: {$regex: name}, isDeleted: false}).sort({price: sortPrice})
+
+        if(searchName.length !== 0) {
+            return res.status(200).send({status: true, message: 'Success', data: searchName})
+        }
+        else {
+            return res.status(404).send({status: false, message: `product not found with this ${name}`})
+        }
+    }
+
+    //ascending(low to high)
+    if(sortPrice==1){
+       let findPrice=await productModel.find(filter).sort({price:1})
+       if(findPrice.length==0)
+       {
+           return res.status(404).send({status:false,message:"data not found"})
+       }
+       return res.status(200).send({status:true,data:findPrice})
+    }
+
+    //descending(high to low)
+    if(sortPrice==-1){
+        let findPrice=await productModel.find(filter).sort({price:-1})
+        if(findPrice.length==0)
+        {
+            return res.status(404).send({status:false,message:"data not found"})
+        }
+        return res.status(200).send({status:true,data:findPrice})
+     }
+ 
+     let findPrice=await productModel.find(filter)
+        if(findPrice.length==0)
+        {
+            return res.status(404).send({status:false,message:"data not found"})
+        }
+        return res.status(200).send({status:true,data:findPrice})
+    
+    }
+    catch(error){
+        return res.status(500).json({ status: false, message: error.message });
+    }
+}
 
 const getProductbyId = async function (req, res) {
     try{
