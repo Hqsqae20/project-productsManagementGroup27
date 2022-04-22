@@ -39,6 +39,11 @@ const createCart = async(req, res)=>{
             res.status(400).send({status:false, message:"Plz Provide Similar UserId's in params and body"})
             return  
        }
+      if (!isValidObjId.test(productId)) {
+        return res.status(400).send({ status: false, message: "productId  is not valid" });
+      }
+
+
 
 
       const isProductPresent=await productModel.findOne({_id:productId, isDeleted:false})
@@ -256,7 +261,7 @@ const updateCart = async function (req, res) {
     for (i in itemsArr) {
         if (itemsArr[i].productId.toString() == productId) {
             itemsArr[i].quantity = itemsArr[i].quantity - 1
-s
+
             if (itemsArr[i].quantity < 1) {
                 await cartModel.findOneAndUpdate({ _id: cartId }, { $pull: { items: { productId: productId } } }, { new: true })
                 let quantity = findCart.totalItems - 1

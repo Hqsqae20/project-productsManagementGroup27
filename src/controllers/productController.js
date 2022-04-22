@@ -66,6 +66,11 @@ const isValidDetails = function (requestBody) {
     return Object.keys(requestBody).length > 0;
 };
 
+const isValidObjectId = function (ObjectId) {
+    return mongoose.Types.ObjectId.isValid(ObjectId)
+  }
+  
+
 const createProduct = async function (req, res) {
     try {
         let data = req.body
